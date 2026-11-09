@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dungeon Adventure</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-container">
+  <div class="hud">
+    <span class="line1" id="line1"></span>
+    <span class="line2" id="line2"></span>
+  </div>
+  <div class="play-area">
+    <canvas id="playfield"></canvas>
+    <canvas id="minimap"></canvas>
+  </div>
+  <div class="buttons">
+    <div class="btn-group">
+      <button id="btn-ai-toggle" title="Toggle AI (i)">AI: ON</button>
+      <button id="btn-ai-cycle" title="Cycle AI personality (c)">→ Superman</button>
+      <button id="btn-pause" title="Pause / resume (p)">Pause</button>
+    </div>
+    <div class="btn-group">
+      <button id="btn-torch" title="Toggle torch (t)">Torch: On</button>
+      <button id="btn-speed-down" title="Slow down (-)">−</button>
+      <span class="speed-label" id="speed-label">100ms</span>
+      <button id="btn-speed-up" title="Speed up (+)">+</button>
+    </div>
+    <div class="btn-group">
+      <label for="seed-input" class="seed-label">Seed:</label>
+      <input type="text" id="seed-input" class="seed-input" maxlength="10" inputmode="numeric" />
+      <button id="btn-seed-apply" title="Start a new run with this seed">Apply</button>
+    </div>
+    <div class="btn-group">
+      <button id="btn-new-run" title="Generate a new random dungeon">New Run</button>
+      <button id="btn-fullscreen" title="Enter / exit fullscreen">Fullscreen</button>
+      <button id="btn-restart" title="Replay this exact run">Restart</button>
+    </div>
+  </div>
+  <div class="help">
+    <kbd>WASD</kbd>/arrows move · <kbd>i</kbd> AI · <kbd>c</kbd> cycle ·
+    <kbd>p</kbd> pause · <kbd>t</kbd> torch · <kbd>+</kbd>/<kbd>-</kbd> speed ·
+    <kbd>q</kbd> restart · <kbd>Esc</kbd> exit fullscreen
+  </div>
+  <footer>
+    Dungeon Adventure · MIT License ·
+    <a href="https://github.com/SkywaterBrown/dungeon-adventure" target="_blank" rel="noopener">
+      github.com/SkywaterBrown/dungeon-adventure
+    </a>
+  </footer>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
