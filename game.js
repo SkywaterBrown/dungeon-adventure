@@ -928,10 +928,16 @@ function heroTickAI() {
 // Rendering
 // =============================================================
 const COLORS = {
-  hero: '#fff',
-  grunt: '#5f5', bat: '#5ff', dragon: '#f55',
-  chest: '#ff5', potion: '#f5f',
-  empty: '#999', treasure: '#e6c040', den: '#e05050', maze: '#6080e0',
+  hero: '#ffffff',
+  grunt: '#00ff00',   // Pure lime green
+  bat: '#00ffff',     // Pure cyan
+  dragon: '#ff0000',  // Pure red
+  chest: '#ffff00',   // Pure yellow
+  potion: '#ff00ff',  //  Magenta
+  empty: '#aaaaaa',   //  Gray
+  treasure: '#ffcc00',//  Gold
+  den: '#ff3333',     //  Red
+  maze: '#6699ff',    //  Blue
 };
 
 function roomTint(type) {
@@ -951,7 +957,16 @@ function roomTypeTag(type) {
   }
 }
 function dim(hex, f = 0.4) {
-  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
   return `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
 }
 
@@ -967,7 +982,6 @@ function bindCanvases() {
 function sizeCanvases() {
   const dpr = window.devicePixelRatio || 1;
 
-  // Playfield: logical 640×320 (ROOM_W*CELL × ROOM_H*CELL)
   {
     const rect = canvas.getBoundingClientRect();
     const cssW = Math.max(1, Math.round(rect.width));
@@ -981,7 +995,6 @@ function sizeCanvases() {
     ctx.textBaseline = 'middle';
   }
 
-  // Minimap: logical 144×144 ((2*GRID_W+1)*CELL square)
   {
     const rect = minimap.getBoundingClientRect();
     const cssW = Math.max(1, Math.round(rect.width));
@@ -1034,7 +1047,8 @@ function computeVisibility() {
 function render() {
   const rm = S.rooms[S.heroR][S.heroC];
   const tint = roomTint(rm.type);
-  const dimTint = dim(tint, 0.45);
+  // Drop the multiplier dramatically so "dim" is extremely dark, just like A_DIM
+  const dimTint = dim(tint, 0.40);
 
   const vis = computeVisibility();
 
@@ -1056,7 +1070,7 @@ function render() {
         } else if (wasSeen) {
           if (!isDoor) drawChar(x, y, '#', dimTint, false);
         } else {
-          drawChar(x, y, '#', '#222', false);
+          drawChar(x, y, '#', '#222222', false);
         }
       } else if (S.roomWalls[S.heroR][S.heroC][y][x]) {
         if (visible) drawChar(x, y, '#', tint, true);
@@ -1071,12 +1085,12 @@ function render() {
   if (rm.hasChest) {
     const v = vis[rm.chestY][rm.chestX], ws = S.seen[S.heroR][S.heroC][rm.chestY][rm.chestX];
     if (v) drawChar(rm.chestX, rm.chestY, '$', COLORS.chest, true);
-    else if (ws) drawChar(rm.chestX, rm.chestY, '$', dim(COLORS.chest, 0.4), false);
+    else if (ws) drawChar(rm.chestX, rm.chestY, '$', dim(COLORS.chest, 0.15), false);
   }
   if (rm.hasPotion) {
     const v = vis[rm.potionY][rm.potionX], ws = S.seen[S.heroR][S.heroC][rm.potionY][rm.potionX];
     if (v) drawChar(rm.potionX, rm.potionY, '+', COLORS.potion, true);
-    else if (ws) drawChar(rm.potionX, rm.potionY, '+', dim(COLORS.potion, 0.4), false);
+    else if (ws) drawChar(rm.potionX, rm.potionY, '+', dim(COLORS.potion, 0.15), false);
   }
   for (const m of rm.monsters) {
     if (!m.alive) continue;
@@ -1096,7 +1110,7 @@ function renderMinimap() {
   mmCtx.fillStyle = '#000';
   mmCtx.fillRect(0, 0, w, h);
   mmCtx.font = 'bold 14px "Courier New", monospace';
-  mmCtx.fillStyle = '#666';
+  mmCtx.fillStyle = '#666666';
 
   for (let row = 0; row <= GRID_H; row++) for (let col = 0; col <= GRID_W; col++) {
     mmCtx.fillText('+', col * 2 * CELL + CELL / 2, row * 2 * CELL + CELL / 2 + 1);
@@ -1116,7 +1130,7 @@ function renderMinimap() {
     if (row === S.heroR && col === S.heroC) {
       mmCtx.fillStyle = tp;
       mmCtx.fillRect((col * 2 + 1) * CELL, (row * 2 + 1) * CELL, CELL, CELL);
-      mmCtx.fillStyle = '#000';
+      mmCtx.fillStyle = '#000000';
       mmCtx.fillText('@', px, py);
     } else if (!rm.visited) {
       // blank
@@ -1124,10 +1138,10 @@ function renderMinimap() {
       mmCtx.fillStyle = COLORS.chest;
       mmCtx.fillText('$', px, py);
     } else if (rm.monsters.some(m => m.alive)) {
-      mmCtx.fillStyle = '#f55';
+      mmCtx.fillStyle = '#ff5555';
       mmCtx.fillText('!', px, py);
     } else {
-      mmCtx.fillStyle = dim(tp, 0.5);
+      mmCtx.fillStyle = dim(tp, 0.25); // Very dark visited rooms
       mmCtx.fillText('.', px, py);
     }
   }
@@ -1176,10 +1190,10 @@ function drawBanner(text) {
   const w = ROOM_W * CELL, h = ROOM_H * CELL;
   ctx.fillStyle = 'rgba(0,0,0,0.85)';
   ctx.fillRect(w * 0.15, h * 0.4, w * 0.7, h * 0.2);
-  ctx.strokeStyle = '#888';
+  ctx.strokeStyle = '#888888';
   ctx.lineWidth = 2;
   ctx.strokeRect(w * 0.15, h * 0.4, w * 0.7, h * 0.2);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 22px "Courier New", monospace';
   ctx.fillText(text, w / 2, h / 2);
 }
