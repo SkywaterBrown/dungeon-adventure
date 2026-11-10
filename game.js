@@ -457,17 +457,11 @@ function hasLOS(x0, y0, x1, y1, r, c) {
 }
 
 function updateSeen() {
-  const torch = S.cfg.torchEnabled;
-  const r2 = S.cfg.torchRadius * S.cfg.torchRadius;
+  const vis = computeVisibility();
   const rm = S.rooms[S.heroR][S.heroC];
   for (let y = 0; y < ROOM_H; y++) {
     for (let x = 0; x < ROOM_W; x++) {
-      let visible = false;
-      if (hasLOS(S.heroX, S.heroY, x, y, S.heroR, S.heroC)) {
-        const dx = x - S.heroX, dy = y - S.heroY;
-        if (!torch || dx * dx + dy * dy <= r2) visible = true;
-      }
-      if (!visible) continue;
+      if (!vis[y][x]) continue;
       S.seen[S.heroR][S.heroC][y][x] = 1;
       let mt = 0;
       for (const m of rm.monsters) {
@@ -1026,6 +1020,11 @@ function drawChar(x, y, ch, color, bold) {
   ctx.fillText(ch, x * CELL + CELL / 2, y * CELL + CELL / 2 + 1);
 }
 
+function isWallCell(r, c, x, y) {
+  if (x < 0 || x >= ROOM_W || y < 0 || y >= ROOM_H) return false;
+  return isWall(x, y) || S.roomWalls[r][c][y][x] !== 0;
+}
+
 function computeVisibility() {
   const torch = S.cfg.torchEnabled;
   const r2 = S.cfg.torchRadius * S.cfg.torchRadius;
@@ -1041,6 +1040,36 @@ function computeVisibility() {
       vis[y][x] = 1;
     }
   }
+
+  // A wall face is lit whenever the floor tile in front of it is lit.
+  // Without this, the hero's own wall corner blocks diagonal LOS to the
+  // adjacent wall cells (corner-cutting), making nearby walls darker than
+  // distant ones. Propagate one step from lit floor -> adjacent wall only.
+  const extra = [];
+  for (let y = 0; y < ROOM_H; y++) {
+    for (let x = 0; x < ROOM_W; x++) {
+      if (vis[y][x]) continue;
+      if (!isWallCell(S.heroR, S.heroC, x, y)) continue;
+      if (torch) {
+        const dx = x - S.heroX, dy = y - S.heroY;
+        if (dx * dx + dy * dy > r2) continue;   // still dark outside torch
+      }
+      let lit = false;
+      for (let dy = -1; dy <= 1 && !lit; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= ROOM_W || ny < 0 || ny >= ROOM_H) continue;
+          if (!vis[ny][nx]) continue;
+          if (isWallCell(S.heroR, S.heroC, nx, ny)) continue; // need a lit floor neighbour
+          lit = true;
+          break;
+        }
+      }
+      if (lit) extra.push([x, y]);
+    }
+  }
+  for (const [x, y] of extra) vis[y][x] = 1;
   return vis;
 }
 
