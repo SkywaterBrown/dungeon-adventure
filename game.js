@@ -1329,6 +1329,17 @@ function actionToggleTorch() {
   S.cfg.torchEnabled = !S.cfg.torchEnabled;
   render();
 }
+let hudHidden = false;
+function actionToggleHUD() {
+  hudHidden = !hudHidden;
+  document.getElementById('game-container').classList.toggle('hud-hidden', hudHidden);
+  const btn = document.getElementById('btn-hud');
+  btn.textContent = hudHidden ? 'Show HUD' : 'Hide HUD';
+  btn.classList.toggle('active', hudHidden);
+  // Layout changed -> re-measure both canvases (and fullscreen scale).
+  onResize();
+  updateFullscreenScale();
+}
 function actionSpeedUp() {
   S.cfg.aiTickUs = Math.max(20000, S.cfg.aiTickUs - 20000);
   if (S.aiMode && !S.paused) startLoop();
@@ -1406,6 +1417,7 @@ function onKeyDown(e) {
   if (k === 'c' || k === 'C') { actionCycleAI(); return; }
   if (k === 'p' || k === 'P') { actionTogglePause(); return; }
   if (k === 't' || k === 'T') { actionToggleTorch(); return; }
+  if (k === 'h' || k === 'H') { actionToggleHUD(); return; }
   if (k === '+' || k === '=') { actionSpeedUp(); return; }
   if (k === '-' || k === '_') { actionSpeedDown(); return; }
 
@@ -1478,6 +1490,7 @@ function init() {
   document.getElementById('btn-ai-cycle').addEventListener('click', actionCycleAI);
   document.getElementById('btn-pause').addEventListener('click', actionTogglePause);
   document.getElementById('btn-torch').addEventListener('click', actionToggleTorch);
+  document.getElementById('btn-hud').addEventListener('click', actionToggleHUD);
   document.getElementById('btn-speed-down').addEventListener('click', actionSpeedDown);
   document.getElementById('btn-speed-up').addEventListener('click', actionSpeedUp);
   document.getElementById('btn-seed-apply').addEventListener('click', actionApplySeed);
