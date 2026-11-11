@@ -183,3 +183,13 @@ footer a:hover {
   .play-area { gap: 10px; }
   #minimap { flex: 0 0 96px; height: 96px; }
 }
+/* ---- HUD hide mode ---- */
+#game-container.hud-hidden .hud,
+#game-container.hud-hidden .help,
+#game-container.hud-hidden footer,
+#game-container.hud-hidden .buttons .btn-group:not(.hud-toggle-group) {
+  display: none;
+}
+#game-container.hud-hidden .buttons { margin-top: 6px; }
+#game-container.hud-hidden .hud-toggle-group button { opacity: 0.55; }
+#game-container.hud-hidden .hud-toggle-group button:hover { opacity: 1; }
